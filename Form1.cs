@@ -64,7 +64,7 @@ namespace lab_5
                     if (obj is DisappearingObject)
                     {
                         score++; // Увеличиваем счетчик очков при пересечении с объектом DisappearingAndReappearingObject
-                        txtScore.Text = $"Счет: {score}";
+                        txtScore.Text = $"Очки: {score}";
                     }
                 }
             }

@@ -62,5 +62,6 @@ namespace lab_5.Objects
                 this.OnOverlap(this, obj);
             }
         }
+
     }
 }
