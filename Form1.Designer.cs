@@ -28,12 +28,54 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
-            this.Text = "Form1";
+            components = new System.ComponentModel.Container();
+            pbMain = new PictureBox();
+            timer1 = new System.Windows.Forms.Timer(components);
+            txtLog = new RichTextBox();
+            ((System.ComponentModel.ISupportInitialize)pbMain).BeginInit();
+            SuspendLayout();
+            // 
+            // pbMain
+            // 
+            pbMain.Location = new Point(12, 12);
+            pbMain.Name = "pbMain";
+            pbMain.Size = new Size(577, 426);
+            pbMain.TabIndex = 0;
+            pbMain.TabStop = false;
+            pbMain.Paint += pbMain_Paint;
+            pbMain.MouseClick += pbMain_MouseClick;
+            // 
+            // timer1
+            // 
+            timer1.Enabled = true;
+            timer1.Interval = 30;
+            timer1.Tick += timer1_Tick;
+            // 
+            // txtLog
+            // 
+            txtLog.Location = new Point(595, 12);
+            txtLog.Name = "txtLog";
+            txtLog.Size = new Size(193, 426);
+            txtLog.TabIndex = 1;
+            txtLog.Text = "";
+            // 
+            // Form1
+            // 
+            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(800, 450);
+            Controls.Add(txtLog);
+            Controls.Add(pbMain);
+            Name = "Form1";
+            Text = "Form1";
+            ((System.ComponentModel.ISupportInitialize)pbMain).EndInit();
+            ResumeLayout(false);
         }
 
         #endregion
+
+        private PictureBox pbMain;
+        private System.Windows.Forms.Timer timer1;
+        private RichTextBox txtLog;
     }
 }
