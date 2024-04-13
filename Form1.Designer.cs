@@ -32,6 +32,7 @@
             pbMain = new PictureBox();
             timer1 = new System.Windows.Forms.Timer(components);
             txtLog = new RichTextBox();
+            txtScore = new RichTextBox();
             ((System.ComponentModel.ISupportInitialize)pbMain).BeginInit();
             SuspendLayout();
             // 
@@ -59,11 +60,20 @@
             txtLog.TabIndex = 1;
             txtLog.Text = "";
             // 
+            // txtScore
+            // 
+            txtScore.Location = new Point(495, 36);
+            txtScore.Name = "txtScore";
+            txtScore.Size = new Size(83, 26);
+            txtScore.TabIndex = 2;
+            txtScore.Text = "";
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
+            Controls.Add(txtScore);
             Controls.Add(txtLog);
             Controls.Add(pbMain);
             Name = "Form1";
@@ -77,5 +87,6 @@
         private PictureBox pbMain;
         private System.Windows.Forms.Timer timer1;
         private RichTextBox txtLog;
+        private RichTextBox txtScore;
     }
 }

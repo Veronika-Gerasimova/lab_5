@@ -18,16 +18,8 @@ namespace lab_5.Objects
         }
         public override void Render(Graphics g)
         {
-            g.FillEllipse(
-                new SolidBrush(Color.DeepSkyBlue),
-                -15, -15,
-                30, 30
-                );
-            g.DrawEllipse(
-                new Pen(Color.Black, 2),
-                -15, -15,
-                30, 30
-                );
+            g.FillEllipse( new SolidBrush(Color.DeepSkyBlue), -15, -15, 30, 30);
+            g.DrawEllipse( new Pen(Color.Black, 2), -15, -15, 30, 30 );
             g.DrawLine(new Pen(Color.Black, 2), 0, 0, 25, 0);
         }
 
@@ -40,8 +32,8 @@ namespace lab_5.Objects
 
         public override void Overlap(BaseObject obj)
         {
-           base.Overlap(obj);
-            if( obj is Marker)
+            base.Overlap(obj);
+            if (obj is Marker)
             {
                 OnMarkerOverlap(obj as Marker);
             }

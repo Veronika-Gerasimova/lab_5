@@ -22,7 +22,7 @@ namespace lab_5.Objects
         }
         public Matrix GetTransform()
         {
-            var matrix = new Matrix();  
+            var matrix = new Matrix();
             matrix.Translate(X, Y);
             matrix.Rotate(Angle);
 
@@ -55,8 +55,9 @@ namespace lab_5.Objects
             return !region.IsEmpty(g); // если полученная форма не пуста то значит было пересечение
         }
 
-        public virtual void Overlap (BaseObject obj) { 
-            if(this.OnOverlap != null)
+        public virtual void Overlap(BaseObject obj)
+        {
+            if (this.OnOverlap != null)
             {
                 this.OnOverlap(this, obj);
             }

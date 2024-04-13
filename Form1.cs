@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 using lab_5.Objects;
 
@@ -12,7 +11,8 @@ namespace lab_5
         List<BaseObject> objects = new();
         Player player;
         Marker marker;
-
+        int score = 0; // Переменная для хранения счета
+        private Random random = new Random();
         public Form1()
         {
             InitializeComponent();
@@ -23,7 +23,8 @@ namespace lab_5
                 string logMessage = $"[{DateTime.Now:HH:mm:ss:ff}] Игрок пересекся с {obj}\n";
 
                 // Доступ к элементу управления из другого потока
-                txtLog.Invoke(new Action(() => {
+                txtLog.Invoke(new Action(() =>
+                {
                     txtLog.Text = logMessage + txtLog.Text;
                 }));
             };
@@ -40,11 +41,11 @@ namespace lab_5
             objects.Add(marker);
 
             objects.Add(player);
-           // objects.Add(new MyRectangle(50, 50, 0));
-            //objects.Add(new MyRectangle(100, 100, 45));
 
-            // добавляем новый объект DisappearingObject
+            // добавляем новый объект DisappearingAndReappearingObject
             objects.Add(new DisappearingObject(200, 200, 0));
+            objects.Add(new DisappearingObject(300, 300, 0));
+            objects.Add(new DisappearingObject(400, 400, 0));
         }
 
         private void pbMain_Paint(object sender, PaintEventArgs e)
@@ -60,17 +61,41 @@ namespace lab_5
                 {
                     player.Overlap(obj);
                     obj.Overlap(player);
+                    if (obj is DisappearingObject)
+                    {
+                        score++; // Увеличиваем счетчик очков при пересечении с объектом DisappearingAndReappearingObject
+                        txtScore.Text = $"Счет: {score}";
+                    }
                 }
             }
 
-            // рендерим объекты
+            // рендерим DisappearingAndReappearingObject первым
             foreach (var obj in objects)
             {
-                g.Transform = obj.GetTransform();
-                obj.Render(g);
+                if (obj is DisappearingObject)
+                {
+                    g.Transform = obj.GetTransform();
+                    obj.Render(g);
+                }
+            }
+
+            // рендерим все объекты, кроме DisappearingObject
+            foreach (var obj in objects)
+            {
+                if (obj != marker && !(obj is DisappearingObject))
+                {
+                    g.Transform = obj.GetTransform();
+                    obj.Render(g);
+                }
+            }
+
+            // рендерим маркер отдельно, чтобы он был "сверху"
+            if (marker != null)
+            {
+                g.Transform = marker.GetTransform();
+                marker.Render(g);
             }
         }
-
         private void updatePlayer()
         {
             if (marker != null)
@@ -81,11 +106,10 @@ namespace lab_5
                 dx /= length;
                 dy /= length;
 
-                player.X += dx * 2f; // увеличил скорость движения для наглядности
-                player.Y += dy * 2f; // увеличил скорость движения для наглядности
+                player.vX += dx * 0.5f;
+                player.vY += dy * 0.5f;
 
-                // расчитываем угол поворота игрока 
-                player.Angle = 90 - MathF.Atan2(dx, dy) * 180 / MathF.PI;
+                player.Angle = 90 - MathF.Atan2(player.vX, player.vY) * 180 / MathF.PI;
 
                 // Проверка пересечения с объектами
                 foreach (var obj in objects)
@@ -95,8 +119,20 @@ namespace lab_5
                         player.Overlap(obj);
                         obj.Overlap(player);
                     }
+
+                    // Проверка пересечения с зеленым объектом
+                    if (obj is DisappearingObject && player.Overlaps(obj, pbMain.CreateGraphics()))
+                    {
+                        (obj as DisappearingObject).DisappearAndReappear(pbMain.Width, pbMain.Height);
+                    }
                 }
             }
+
+            player.vX += -player.vX * 0.1f;
+            player.vY += -player.vY * 0.1f;
+
+            player.X += player.vX;
+            player.Y += player.vY;
         }
 
 
