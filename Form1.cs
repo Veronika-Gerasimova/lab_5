@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.Windows.Forms;
 using lab_5.Objects;
 
@@ -13,6 +15,8 @@ namespace lab_5
         Marker marker;
         int score = 0; // Переменная для хранения счета
         private Random random = new Random();
+        private MovingBlackArea movingBlackArea;
+
         public Form1()
         {
             InitializeComponent();
@@ -28,7 +32,6 @@ namespace lab_5
                     txtLog.Text = logMessage + txtLog.Text;
                 }));
             };
-
 
             // добавил реакцию на пересечение с маркером
             player.OnMarkerOverlap += (m) =>
@@ -46,6 +49,12 @@ namespace lab_5
             objects.Add(new DisappearingObject(200, 200, 0));
             objects.Add(new DisappearingObject(300, 300, 0));
             objects.Add(new DisappearingObject(400, 400, 0));
+
+            // добавляем черную область
+            movingBlackArea = new MovingBlackArea(pbMain.Width, pbMain.Height);
+            movingBlackArea.OnOverlap += (m, obj) =>
+           
+            objects.Add(movingBlackArea);
         }
 
         private void pbMain_Paint(object sender, PaintEventArgs e)
@@ -64,7 +73,7 @@ namespace lab_5
                     if (obj is DisappearingObject)
                     {
                         score++; // Увеличиваем счетчик очков при пересечении с объектом DisappearingAndReappearingObject
-                        txtScore.Text = $"Очки: {score}";
+                        txtScore.Text = $"Счет: {score}";
                     }
                 }
             }
@@ -78,16 +87,21 @@ namespace lab_5
                     obj.Render(g);
                 }
             }
-
-            // рендерим все объекты, кроме DisappearingObject
+            // рендерим все объекты, кроме DisappearingObject и MovingBlackArea
             foreach (var obj in objects)
             {
-                if (obj != marker && !(obj is DisappearingObject))
+                if (obj != marker && !(obj is DisappearingObject) && !(obj is MovingBlackArea))
                 {
                     g.Transform = obj.GetTransform();
                     obj.Render(g);
                 }
             }
+
+
+            // обновляем и рендерим movingBlackArea
+            movingBlackArea.Update();
+            g.Transform = movingBlackArea.GetTransform();
+            movingBlackArea.Render(g);
 
             // рендерим маркер отдельно, чтобы он был "сверху"
             if (marker != null)
@@ -96,6 +110,7 @@ namespace lab_5
                 marker.Render(g);
             }
         }
+
         private void updatePlayer()
         {
             if (marker != null)
@@ -135,16 +150,14 @@ namespace lab_5
             player.Y += player.vY;
         }
 
-
         private void timer1_Tick(object sender, EventArgs e)
         {
-            //updatePlayer();
+            movingBlackArea.Update();
             pbMain.Invalidate();
         }
 
         private void pbMain_MouseClick(object sender, MouseEventArgs e)
         {
-            // а это так и остается
             marker.X = e.X;
             marker.Y = e.Y;
         }

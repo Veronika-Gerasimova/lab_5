@@ -14,12 +14,23 @@ namespace lab_5.Objects
         public float Y;
         public float Angle;
         public Action<BaseObject, BaseObject> OnOverlap;
+        internal Color Color;
+        internal bool IsInBlackArea;
+
+
         public BaseObject(float x, float y, float angle)
         {
             X = x;
             Y = y;
             Angle = angle;
+       
         }
+        public virtual void Update()
+        {
+            // Реализация обновления объекта
+        }
+        public virtual void Exit(BaseObject obj) { }
+
         public Matrix GetTransform()
         {
             var matrix = new Matrix();
@@ -62,6 +73,5 @@ namespace lab_5.Objects
                 this.OnOverlap(this, obj);
             }
         }
-
     }
 }

@@ -40,7 +40,7 @@
             // 
             pbMain.Location = new Point(12, 40);
             pbMain.Name = "pbMain";
-            pbMain.Size = new Size(577, 353);
+            pbMain.Size = new Size(577, 340);
             pbMain.TabIndex = 0;
             pbMain.TabStop = false;
             pbMain.Paint += pbMain_Paint;
@@ -56,7 +56,7 @@
             // 
             txtLog.Location = new Point(595, 12);
             txtLog.Name = "txtLog";
-            txtLog.Size = new Size(193, 381);
+            txtLog.Size = new Size(193, 368);
             txtLog.TabIndex = 1;
             txtLog.Text = "";
             // 
@@ -77,7 +77,7 @@
             Controls.Add(txtLog);
             Controls.Add(pbMain);
             Name = "Form1";
-            Text = "Form1";
+            Text = "Обработка событий";
             ((System.ComponentModel.ISupportInitialize)pbMain).EndInit();
             ResumeLayout(false);
         }
