@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Drawing;
-using System.Drawing.Drawing2D;
 
 namespace lab_5.Objects
 {
@@ -23,14 +22,15 @@ namespace lab_5.Objects
             X = x;
             Y = y;
             Angle = angle;
-       
+
         }
-        public virtual void Update()
+        public virtual void Update(Graphics g)
         {
             // Реализация обновления объекта
         }
-        public virtual void Exit(BaseObject obj) { }
 
+        public virtual void Exit(BaseObject obj) { }
+        public virtual void Enter(BaseObject obj) { }
         public Matrix GetTransform()
         {
             var matrix = new Matrix();
@@ -71,6 +71,11 @@ namespace lab_5.Objects
             if (this.OnOverlap != null)
             {
                 this.OnOverlap(this, obj);
+            }
+
+            if (obj is MovingBlackArea)
+            {
+                this.Exit(obj as MovingBlackArea);
             }
         }
     }

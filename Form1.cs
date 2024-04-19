@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
-using System.Windows.Forms;
 using lab_5.Objects;
+
 
 namespace lab_5
 {
@@ -14,13 +9,12 @@ namespace lab_5
         Player player;
         Marker marker;
         int score = 0; // Переменная для хранения счета
-        private Random random = new Random();
-        private MovingBlackArea movingBlackArea;
+        private MovingBlackArea blackArea;
+        private readonly Dictionary<BaseObject, Color> originalColors = new();
 
         public Form1()
         {
             InitializeComponent();
-
             player = new Player(pbMain.Width / 2, pbMain.Height / 2, 0);
             player.OnOverlap += (p, obj) =>
             {
@@ -45,21 +39,36 @@ namespace lab_5
 
             objects.Add(player);
 
-            // добавляем новый объект DisappearingAndReappearingObject
-            objects.Add(new DisappearingObject(200, 200, 0));
-            objects.Add(new DisappearingObject(300, 300, 0));
-            objects.Add(new DisappearingObject(400, 400, 0));
+            // добавляем новые объекты DisappearingObject с передачей pbMain
+            objects.Add(new DisappearingObject(200, 200, 0, pbMain));
+            objects.Add(new DisappearingObject(300, 300, 0, pbMain));
+            blackArea = new MovingBlackArea(0, 0, objects);
+            blackArea.OnEnter += (obj) =>
+            {
+                if (obj is BaseObject baseObject)
+                {
+                    baseObject.Color = Color.White;
+                }
+            };
 
-            // добавляем черную область
-            movingBlackArea = new MovingBlackArea(pbMain.Width, pbMain.Height);
-            movingBlackArea.OnOverlap += (m, obj) =>
-           
-            objects.Add(movingBlackArea);
+            blackArea.OnExit += (obj) =>
+            {
+                if (obj is BaseObject baseObject)
+                {
+                    if (originalColors.ContainsKey(baseObject))
+                    {
+                        baseObject.Color = originalColors[baseObject];
+                    }
+                }
+            };
+
+            objects.Add(blackArea);
+
         }
 
         private void pbMain_Paint(object sender, PaintEventArgs e)
         {
-            var g = e.Graphics;
+                      var g = e.Graphics;
 
             g.Clear(Color.White);
             updatePlayer();
@@ -77,8 +86,22 @@ namespace lab_5
                     }
                 }
             }
-
-            // рендерим DisappearingAndReappearingObject первым
+            foreach (var obj in objects)
+            {
+                if (obj is MovingBlackArea)
+                {
+                    g.Transform = obj.GetTransform();
+                    obj.Render(g);
+                }
+            }
+            foreach (var obj in objects)
+            {
+                if (obj is Player)
+                {
+                    g.Transform = obj.GetTransform();
+                    obj.Render(g);
+                }
+            }
             foreach (var obj in objects)
             {
                 if (obj is DisappearingObject)
@@ -87,30 +110,14 @@ namespace lab_5
                     obj.Render(g);
                 }
             }
-            // рендерим все объекты, кроме DisappearingObject и MovingBlackArea
-            foreach (var obj in objects)
-            {
-                if (obj != marker && !(obj is DisappearingObject) && !(obj is MovingBlackArea))
-                {
-                    g.Transform = obj.GetTransform();
-                    obj.Render(g);
-                }
-            }
-
-
-            // обновляем и рендерим movingBlackArea
-            movingBlackArea.Update();
-            g.Transform = movingBlackArea.GetTransform();
-            movingBlackArea.Render(g);
-
             // рендерим маркер отдельно, чтобы он был "сверху"
             if (marker != null)
             {
                 g.Transform = marker.GetTransform();
                 marker.Render(g);
             }
+            blackArea.Update(g);
         }
-
         private void updatePlayer()
         {
             if (marker != null)
@@ -140,6 +147,23 @@ namespace lab_5
                     {
                         (obj as DisappearingObject).DisappearAndReappear(pbMain.Width, pbMain.Height);
                     }
+
+                    // Проверка нахождения игрока в черной области
+                    if (obj is MovingBlackArea && player.Overlaps(obj, pbMain.CreateGraphics()))
+                    {
+                        if (player.IsInBlackArea == false)
+                        {
+                            player.Enter(obj as MovingBlackArea, pbMain.CreateGraphics());
+                        }
+                    }
+
+                    else
+                    {
+                        if (player.IsInBlackArea == true)
+                        {
+                            player.Exit(obj as MovingBlackArea);
+                        }
+                    }
                 }
             }
 
@@ -152,14 +176,14 @@ namespace lab_5
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            movingBlackArea.Update();
             pbMain.Invalidate();
         }
-
+        
         private void pbMain_MouseClick(object sender, MouseEventArgs e)
         {
             marker.X = e.X;
             marker.Y = e.Y;
         }
+
     }
 }

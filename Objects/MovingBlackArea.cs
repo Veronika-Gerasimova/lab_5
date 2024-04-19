@@ -1,58 +1,132 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Drawing2D;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace lab_5.Objects
 {
     class MovingBlackArea : BaseObject
     {
-        private const float Speed = 3f;
+        private const float Speed = 2f;
         private const float Width = 200f;
         private const float Height = 400f;
-        private bool isVisible = true;
-     
+        private readonly Dictionary<BaseObject, Color> originalColors = new();
+        private List<BaseObject> objects;
 
-        public event Action<MovingBlackArea, BaseObject> OnOverlap;
-        public event Action<MovingBlackArea, BaseObject> OnExit;
-        public MovingBlackArea(float x, float y) : base(-Width, y, 0)
+        public event Action<BaseObject> OnEnter;
+        public event Action<BaseObject> OnExit;
+
+
+        public MovingBlackArea(float x, float y, List<BaseObject> objects) : base(x, y, 0)
         {
+            this.objects = objects;
         }
 
-        public override void Update()
+        public override void Update(Graphics g)
         {
+            base.Update(g);
+
+            // Move the black area
             X += Speed;
-            if (X > Screen.PrimaryScreen.Bounds.Width)
+            if (X > Width)
             {
                 X = -Width;
             }
+
+            // Log which objects are in or out of the black area
+            foreach (var obj in objects)
+            {
+                if (obj != this && Overlaps(obj, g))
+                {
+                    if (!objectsInBlackArea.Contains(obj))
+                    {
+                        Console.WriteLine($"{obj} entered the black area.");
+                    }
+                    objectsInBlackArea.Add(obj);
+                }
+                else
+                {
+                    if (objectsInBlackArea.Contains(obj))
+                    {
+                        Console.WriteLine($"{obj} exited the black area.");
+                    }
+                    objectsInBlackArea.Remove(obj);
+                }
+            }
+
+            // NeedsUpdate(); // This line may not be necessary anymore
         }
+
 
         public override void Render(Graphics g)
         {
-            g.FillRectangle(new SolidBrush(Color.Black), -Width, -Height, Width, Height);
-            
+            g.FillRectangle(new SolidBrush(Color.Black), X, 0, Width, Height);
         }
+
         public override void Overlap(BaseObject obj)
         {
             base.Overlap(obj);
-            if (!(obj is MovingBlackArea))
+            if (!(obj is Player || obj is Marker || obj is DisappearingObject))
             {
-                obj.Color = Color.White; // Изменяем цвет объекта на белый при попадании в область
+                Enter(obj);
             }
-            OnOverlap?.Invoke(this, obj);
         }
 
-        public override void Exit(BaseObject obj)
+        private readonly HashSet<BaseObject> objectsInBlackArea = new HashSet<BaseObject>();
+
+        public void Enter(BaseObject obj)
+        {
+            if (!originalColors.ContainsKey(obj))
+            {
+                originalColors[obj] = obj.Color;
+            }
+
+            if (!(obj is Player || obj is Marker) && !objectsInBlackArea.Contains(obj))
+            {
+                obj.Color = Color.White; // Change object color to white
+                objectsInBlackArea.Add(obj);
+                OnEnter?.Invoke(obj); // Raise the OnEnter event
+            }
+            else if (objectsInBlackArea.Contains(obj) && obj.Color != Color.White)
+            {
+                obj.Color = Color.White; // Ensure object stays white if already in black area
+            }
+        }
+
+        public void Exit(BaseObject obj)
         {
             base.Exit(obj);
-            if (!(obj is MovingBlackArea))
+
+            if (originalColors.ContainsKey(obj))
             {
-                obj.Color = Color.Black; // Возвращаем цвет объекта на черный при выходе из области
+                obj.Color = originalColors[obj];
+                originalColors.Remove(obj);
             }
-            OnExit?.Invoke(this, obj);
+
+            if (objectsInBlackArea.Contains(obj))
+            {
+                objectsInBlackArea.Remove(obj);
+                OnExit?.Invoke(obj); // Raise the OnExit event
+            }
         }
 
+        internal bool NeedsUpdate()
+        {
+            foreach (var obj in objectsInBlackArea.ToList())
+            {
+                if (!Overlaps(obj, null))
+                {
+                    Exit(obj);
+                }
+                else if (obj.Color != Color.White)
+                {
+                    Enter(obj);
+                }
+            }
+
+            return false; // Метод необходим только для обновления объектов в черной области
+        }
 
     }
 }

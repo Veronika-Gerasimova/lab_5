@@ -1,4 +1,5 @@
-﻿using System;
+﻿using lab_5.Objects;
+using System;
 using System.Collections.Generic;
 using System.Drawing.Drawing2D;
 using System.Linq;
@@ -11,6 +12,7 @@ namespace lab_5.Objects
     {
         public Action<Marker> OnMarkerOverlap;
         public float vX, vY;
+        private List<BaseObject> objects;
 
         public Player(float x, float y, float angle) : base(x, y, angle)
         {
@@ -18,8 +20,8 @@ namespace lab_5.Objects
         }
         public override void Render(Graphics g)
         {
-            g.FillEllipse( new SolidBrush(Color.DeepSkyBlue), -15, -15, 30, 30);
-            g.DrawEllipse( new Pen(Color.Black, 2), -15, -15, 30, 30 );
+            g.FillEllipse(new SolidBrush(Color.DeepSkyBlue), -15, -15, 30, 30);
+            g.DrawEllipse(new Pen(Color.Black, 2), -15, -15, 30, 30);
             g.DrawLine(new Pen(Color.Black, 2), 0, 0, 25, 0);
         }
 
@@ -38,6 +40,18 @@ namespace lab_5.Objects
                 OnMarkerOverlap(obj as Marker);
             }
         }
+        public void Enter(MovingBlackArea area, Graphics g)
+        {
+            IsInBlackArea = true;
+            foreach (var obj in objects)
+            {
+                if (obj != this && obj is DisappearingObject && Overlaps(obj, g))
+                {
+                    (obj as DisappearingObject).Color = Color.White; 
+                }
+            }
+        }
+
 
     }
 }
