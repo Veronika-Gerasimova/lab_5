@@ -33,6 +33,7 @@
             timer1 = new System.Windows.Forms.Timer(components);
             txtLog = new RichTextBox();
             txtScore = new RichTextBox();
+            wallTimer = new System.Windows.Forms.Timer(components);
             ((System.ComponentModel.ISupportInitialize)pbMain).BeginInit();
             SuspendLayout();
             // 
@@ -68,6 +69,12 @@
             txtScore.TabIndex = 2;
             txtScore.Text = "";
             // 
+            // wallTimer
+            // 
+            wallTimer.Enabled = true;
+            wallTimer.Interval = 30;
+            wallTimer.Tick += wallTimer_Tick;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -88,5 +95,6 @@
         private System.Windows.Forms.Timer timer1;
         private RichTextBox txtLog;
         private RichTextBox txtScore;
+        private System.Windows.Forms.Timer wallTimer;
     }
 }

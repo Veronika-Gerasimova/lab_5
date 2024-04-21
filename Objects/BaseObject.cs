@@ -7,76 +7,68 @@ using System.Threading.Tasks;
 
 namespace lab_5.Objects
 {
-    class BaseObject
+  public class BaseObject
     {
-        public float X;
-        public float Y;
-        public float Angle;
-        public Action<BaseObject, BaseObject> OnOverlap;
-        internal Color Color;
-        internal bool IsInBlackArea;
+        public float x;
+        public float y;
+        public float angle;
+        public bool color;
 
+        public Action<BaseObject, BaseObject> onOverlap;
+        public Action<BaseObject> dontObjectOverlap;
 
         public BaseObject(float x, float y, float angle)
         {
-            X = x;
-            Y = y;
-            Angle = angle;
-
+            this.x = x;
+            this.y = y;
+            this.angle = angle;
         }
-        public virtual void Update(Graphics g)
+
+        public virtual void Render(Graphics g)
         {
-            // Реализация обновления объекта
         }
 
-        public virtual void Exit(BaseObject obj) { }
-        public virtual void Enter(BaseObject obj) { }
         public Matrix GetTransform()
         {
             var matrix = new Matrix();
-            matrix.Translate(X, Y);
-            matrix.Rotate(Angle);
+            matrix.Translate(this.x, this.y);
+            matrix.Rotate(this.angle);
 
             return matrix;
         }
-        //виртуальный метод для отрисовки
-        public virtual void Render(Graphics g)
-        {
-            // тут пусто
-        }
+
         public virtual GraphicsPath GetGraphicsPath()
         {
-            // пока возвращаем пустую форму
             return new GraphicsPath();
         }
-        public virtual bool Overlaps(BaseObject obj, Graphics g)
+
+        public virtual bool overlaps(BaseObject obj, Graphics g)
         {
-            // берем информацию о форме
             var path1 = this.GetGraphicsPath();
             var path2 = obj.GetGraphicsPath();
 
-            // применяем к объектам матрицы трансформации
             path1.Transform(this.GetTransform());
             path2.Transform(obj.GetTransform());
 
-            // используем класс Region, который позволяет определить 
-            // пересечение объектов в данном графическом контексте
             var region = new Region(path1);
-            region.Intersect(path2); // пересекаем формы
-            return !region.IsEmpty(g); // если полученная форма не пуста то значит было пересечение
+            region.Intersect(path2);
+            return !region.IsEmpty(g);
         }
 
-        public virtual void Overlap(BaseObject obj)
+        public virtual void Overlap(BaseObject obj) 
         {
-            if (this.OnOverlap != null)
+            if (this.onOverlap != null)
             {
-                this.OnOverlap(this, obj);
+                this.onOverlap(this, obj);
             }
+        }
 
-            if (obj is MovingBlackArea)
+        public void DontOverlap(BaseObject obj)
+        {
+            if (obj != null)
             {
-                this.Exit(obj as MovingBlackArea);
+                dontObjectOverlap(obj);
             }
         }
     }
-}
+    }

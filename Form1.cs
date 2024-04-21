@@ -1,189 +1,170 @@
 using lab_5.Objects;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
 
 
 namespace lab_5
 {
     public partial class Form1 : Form
     {
-        List<BaseObject> objects = new();
-        Player player;
-        Marker marker;
-        int score = 0; // Переменная для хранения счета
-        private MovingBlackArea blackArea;
-        private readonly Dictionary<BaseObject, Color> originalColors = new();
+        private static List<BaseObject> objects = new List<BaseObject>();
+        private static List<BaseObject> negativeObjects = new List<BaseObject>();
+        private Player player;
+        private Marker marker;
+        private DisappearingObject disappearingObject;
+        private NegativeWall wall;
+        private int scores = 0;
+        private static Random rand = new Random(); //системное время
 
         public Form1()
         {
             InitializeComponent();
+            updateScores();
             player = new Player(pbMain.Width / 2, pbMain.Height / 2, 0);
-            player.OnOverlap += (p, obj) =>
-            {
-                string logMessage = $"[{DateTime.Now:HH:mm:ss:ff}] Игрок пересекся с {obj}\n";
+            marker = new Marker(pbMain.Width / 2 + 50, pbMain.Height / 2 + 50, 0);
+            wall = new NegativeWall(0, pbMain.Height / 2, 0, pbMain.Height, pbMain.Width);
 
-                // Доступ к элементу управления из другого потока
-                txtLog.Invoke(new Action(() =>
-                {
-                    txtLog.Text = logMessage + txtLog.Text;
-                }));
+            objects.Add(wall);
+
+            addDisappearingObject();
+            
+            player.onOverlap += (p, obj) =>
+            {
+                txtLog.Text = $"[{DateTime.Now:HH:mm:ss:ff}] Игрок пересекся с {obj}\n" + txtLog.Text;
             };
 
-            // добавил реакцию на пересечение с маркером
-            player.OnMarkerOverlap += (m) =>
+            player.onMarkerOverlap += (m) =>
             {
                 objects.Remove(m);
                 marker = null;
             };
 
-            marker = new Marker(pbMain.Width / 2 + 50, pbMain.Height / 2 + 50, 0);
+            player.onDisappearingObjectOverlap += (t) =>
+            {
+                objects.Remove(t);
+                t = null;
+                addDisappearingObject();
+                ++scores;
+                updateScores();
+            };
+
+            disappearingObject.onDisappearingObjectOverlap += (t) =>
+            {
+                objects.Remove(t);
+                t = null;
+                addDisappearingObject();
+            };
+
+            wall.onObjectOverlap += (o) =>
+            {
+                negativeObjects.Add(o);
+            };
+
             objects.Add(marker);
-
             objects.Add(player);
-
-            // добавляем новые объекты DisappearingObject с передачей pbMain
-            objects.Add(new DisappearingObject(200, 200, 0, pbMain));
-            objects.Add(new DisappearingObject(300, 300, 0, pbMain));
-            blackArea = new MovingBlackArea(0, 0, objects);
-            blackArea.OnEnter += (obj) =>
-            {
-                if (obj is BaseObject baseObject)
-                {
-                    baseObject.Color = Color.White;
-                }
-            };
-
-            blackArea.OnExit += (obj) =>
-            {
-                if (obj is BaseObject baseObject)
-                {
-                    if (originalColors.ContainsKey(baseObject))
-                    {
-                        baseObject.Color = originalColors[baseObject];
-                    }
-                }
-            };
-
-            objects.Add(blackArea);
-
         }
 
         private void pbMain_Paint(object sender, PaintEventArgs e)
         {
-                      var g = e.Graphics;
+
+            var g = e.Graphics;
 
             g.Clear(Color.White);
+
             updatePlayer();
-            // пересчитываем пересечения
-            foreach (var obj in objects.ToArray())
+            negativeObjects.Clear();
+
+            foreach (var obj1 in objects.ToList())
             {
-                if (obj != player && player.Overlaps(obj, g))
+                foreach (var obj2 in objects.ToList())
                 {
-                    player.Overlap(obj);
-                    obj.Overlap(player);
-                    if (obj is DisappearingObject)
+                    if (obj1 != obj2 && obj1.overlaps(obj2, g))
                     {
-                        score++; // Увеличиваем счетчик очков при пересечении с объектом DisappearingAndReappearingObject
-                        txtScore.Text = $"Счет: {score}";
+                        obj1.Overlap(obj2);
                     }
                 }
             }
+
             foreach (var obj in objects)
             {
-                if (obj is MovingBlackArea)
-                {
-                    g.Transform = obj.GetTransform();
-                    obj.Render(g);
-                }
+                g.Transform = obj.GetTransform();
+                obj.color = negativeObjects.Contains(obj);
+                obj.Render(g);
             }
-            foreach (var obj in objects)
-            {
-                if (obj is Player)
-                {
-                    g.Transform = obj.GetTransform();
-                    obj.Render(g);
-                }
-            }
-            foreach (var obj in objects)
-            {
-                if (obj is DisappearingObject)
-                {
-                    g.Transform = obj.GetTransform();
-                    obj.Render(g);
-                }
-            }
-            // рендерим маркер отдельно, чтобы он был "сверху"
-            if (marker != null)
-            {
-                g.Transform = marker.GetTransform();
-                marker.Render(g);
-            }
-            blackArea.Update(g);
         }
-        private void updatePlayer()
+
+        public void updatePlayer()
         {
             if (marker != null)
             {
-                float dx = marker.X - player.X;
-                float dy = marker.Y - player.Y;
-                float length = MathF.Sqrt(dx * dx + dy * dy);
+                float dx = marker.x - player.x;
+                float dy = marker.y - player.y;
+
+                float length = (float)Math.Sqrt(dx * dx + dy * dy);
                 dx /= length;
                 dy /= length;
+
+                player.x += dx * 2;
+                player.y += dy * 2;
 
                 player.vX += dx * 0.5f;
                 player.vY += dy * 0.5f;
 
-                player.Angle = 90 - MathF.Atan2(player.vX, player.vY) * 180 / MathF.PI;
+                player.angle = (float)(90 - Math.Atan2(player.vX, player.vY) * 180 / Math.PI);
 
-                // Проверка пересечения с объектами
-                foreach (var obj in objects)
-                {
-                    if (obj != player && player.Overlaps(obj, pbMain.CreateGraphics()))
-                    {
-                        player.Overlap(obj);
-                        obj.Overlap(player);
-                    }
 
-                    // Проверка пересечения с зеленым объектом
-                    if (obj is DisappearingObject && player.Overlaps(obj, pbMain.CreateGraphics()))
-                    {
-                        (obj as DisappearingObject).DisappearAndReappear(pbMain.Width, pbMain.Height);
-                    }
-
-                    // Проверка нахождения игрока в черной области
-                    if (obj is MovingBlackArea && player.Overlaps(obj, pbMain.CreateGraphics()))
-                    {
-                        if (player.IsInBlackArea == false)
-                        {
-                            player.Enter(obj as MovingBlackArea, pbMain.CreateGraphics());
-                        }
-                    }
-
-                    else
-                    {
-                        if (player.IsInBlackArea == true)
-                        {
-                            player.Exit(obj as MovingBlackArea);
-                        }
-                    }
-                }
             }
-
             player.vX += -player.vX * 0.1f;
             player.vY += -player.vY * 0.1f;
 
-            player.X += player.vX;
-            player.Y += player.vY;
+            player.x += player.vX;
+            player.y += player.vY;
         }
 
         private void timer1_Tick(object sender, EventArgs e)
         {
             pbMain.Invalidate();
         }
-        
+
         private void pbMain_MouseClick(object sender, MouseEventArgs e)
         {
-            marker.X = e.X;
-            marker.Y = e.Y;
+            if (marker == null)
+            {
+                marker = new Marker(0, 0, 0);
+                objects.Add(marker);
+            }
+
+            marker.x = e.X;
+            marker.y = e.Y;
         }
 
+        private void addDisappearingObject()
+        {
+
+            var d = 70;
+
+            var x = rand.Next() % (pbMain.Width - d) + d;
+            var y = rand.Next() % (pbMain.Height - d) + d;
+            this.disappearingObject = new DisappearingObject(x, y, 0);
+
+            objects.Add(disappearingObject);
+        }
+
+        private void updateScores()
+        {
+            txtScore.Text = "Очки: " + scores;
+        }
+      
+        private void wallTimer_Tick(object sender, EventArgs e)
+        {
+            wall.Move();
+        }
     }
 }
