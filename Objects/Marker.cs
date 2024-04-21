@@ -11,7 +11,7 @@ namespace lab_5.Objects
     public class Marker : BaseObject
     {
         public Marker(float x, float y, float angle) : base(x, y, angle) { }
-
+        // Переопределенный метод для отрисовки маркера
         public override void Render(Graphics g)
         {
             if (color)
@@ -27,7 +27,7 @@ namespace lab_5.Objects
                 g.DrawEllipse(new Pen(Color.Red, 2), -10, -10, 20, 20);
             }
         }
-
+        //получение графического пути объекта
         public override GraphicsPath GetGraphicsPath()
         {
             var path = base.GetGraphicsPath();

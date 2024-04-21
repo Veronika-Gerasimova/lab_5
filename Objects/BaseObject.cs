@@ -14,7 +14,7 @@ namespace lab_5.Objects
         public float angle;
         public bool color;
 
-        public Action<BaseObject, BaseObject> onOverlap;
+        public Action<BaseObject, BaseObject> onOverlap;// Событие, возникающее при пересечении объекта с другим объектом
         public Action<BaseObject> dontObjectOverlap;
 
         public BaseObject(float x, float y, float angle)
@@ -23,11 +23,11 @@ namespace lab_5.Objects
             this.y = y;
             this.angle = angle;
         }
-
+        //виртуальный метод для отрисовки
         public virtual void Render(Graphics g)
         {
         }
-
+        //Возвращает матрицу, которая описывает положение и ориентацию объекта на поле
         public Matrix GetTransform()
         {
             var matrix = new Matrix();
@@ -36,12 +36,12 @@ namespace lab_5.Objects
 
             return matrix;
         }
-
+        //получение графического пути объекта
         public virtual GraphicsPath GetGraphicsPath()
         {
             return new GraphicsPath();
         }
-
+        //метод для определения пересечения объекта с другим объектом
         public virtual bool Overlaps(BaseObject obj, Graphics g)
         {
             var path1 = this.GetGraphicsPath();
@@ -54,20 +54,12 @@ namespace lab_5.Objects
             region.Intersect(path2);
             return !region.IsEmpty(g);
         }
-
+        // метод, вызываемый при пересечении объекта с другим объектом
         public virtual void Overlap(BaseObject obj) 
         {
             if (this.onOverlap != null)
             {
                 this.onOverlap(this, obj);
-            }
-        }
-
-        public void DontOverlap(BaseObject obj)
-        {
-            if (obj != null)
-            {
-                dontObjectOverlap(obj);
             }
         }
     }
