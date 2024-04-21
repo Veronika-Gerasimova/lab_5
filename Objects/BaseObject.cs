@@ -42,7 +42,7 @@ namespace lab_5.Objects
             return new GraphicsPath();
         }
 
-        public virtual bool overlaps(BaseObject obj, Graphics g)
+        public virtual bool Overlaps(BaseObject obj, Graphics g)
         {
             var path1 = this.GetGraphicsPath();
             var path2 = obj.GetGraphicsPath();

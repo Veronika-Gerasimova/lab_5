@@ -85,7 +85,7 @@ namespace lab_5
             {
                 foreach (var obj2 in objects.ToList())
                 {
-                    if (obj1 != obj2 && obj1.overlaps(obj2, g))
+                    if (obj1 != obj2 && obj1.Overlaps(obj2, g))
                     {
                         obj1.Overlap(obj2);
                     }
