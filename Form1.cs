@@ -105,8 +105,8 @@ namespace lab_5
                 dx /= length;
                 dy /= length;
 
-                player.x += dx * 2;
-                player.y += dy * 2;
+                player.x += dx * 1;
+                player.y += dy * 1;
 
                 player.vX += dx * 0.5f;
                 player.vY += dy * 0.5f;
@@ -146,7 +146,7 @@ namespace lab_5
 
             var x = rand.Next() % (pbMain.Width - d) + d;
             var y = rand.Next() % (pbMain.Height - d) + d;
-            this.disappearingObject = new DisappearingObject(x, y, 0);
+            this.disappearingObject = new DisappearingObject(x, y, 0, pbMain);
 
             objects.Add(disappearingObject);
         }

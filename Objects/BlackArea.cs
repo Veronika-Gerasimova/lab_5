@@ -9,7 +9,7 @@ namespace lab_5.Objects
 {
     public class BlackArea : BaseObject
     {
-        private float fieldHeight;
+        private float fieldHeight; 
         private float fieldWidth;
         private float width = 1;
         private float maxWidth = 250;

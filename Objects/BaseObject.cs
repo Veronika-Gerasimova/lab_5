@@ -47,10 +47,10 @@ namespace lab_5.Objects
             var path1 = this.GetGraphicsPath();
             var path2 = obj.GetGraphicsPath();
 
-            path1.Transform(this.GetTransform());
+            path1.Transform(GetTransform());
             path2.Transform(obj.GetTransform());
 
-            var region = new Region(path1);
+            var region = new Region(path1); //Используется для определения пересечения между двумя графическими формами (path1 и path2)
             region.Intersect(path2);
             return !region.IsEmpty(g);
         }
